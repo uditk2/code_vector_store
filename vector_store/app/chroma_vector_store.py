@@ -191,4 +191,25 @@ class ChromaVectorStore:
         collection_name = (sanitized_project_base_path + "_" + user_id).lower()[:60]
         return collection_name
 
+    def is_collection_exists(self, collection_name: str) -> bool:
+        """
+        Check if a collection exists in the vector store.
+
+        Args:
+            collection_name: Name of the collection to check
+
+        Returns:
+            True if the collection exists, False otherwise
+        """
+        try:
+            collection = self.client.get_collection(
+                name=collection_name,
+                embedding_function=self.embedding_function
+            )
+            # Update the collections cache
+            self.collections[collection_name] = collection
+            return True
+        except Exception:
+            return False
+
 chroma_vector_store = ChromaVectorStore()

@@ -34,6 +34,9 @@ ENV REDIS_PORT=6379
 ENV VECTOR_STORE_QUEUE=vector_store_queue
 ENV VECTOR_STORE_RESPONSE_QUEUE=vector_store_response_queue
 
+# Expose the API port
+EXPOSE 8000
+
 # Create entrypoint script
 RUN echo '#!/bin/bash\n\necho "Waiting for Redis to be ready..."\n\nuntil python -c "import redis; redis.Redis(host=\\"$REDIS_HOST\\", port=$REDIS_PORT).ping()" 2>/dev/null; do\n\n  echo "Redis not ready yet, waiting..."\n\n  sleep 1\n\n\ndone\necho "Redis is ready, starting application..."\nexec python -m app.main\n' > /app/entrypoint.sh && \
 chmod +x /app/entrypoint.sh
