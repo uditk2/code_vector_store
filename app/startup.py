@@ -126,10 +126,3 @@ def start_service():
             time.sleep(60)
     except KeyboardInterrupt:
         logger.info("Shutting down Vector Store service...")
-
-def start_api_service():
-    """
-    Start the FastAPI service for the vector store
-    """
-    from app.main import start_api
-    start_api()

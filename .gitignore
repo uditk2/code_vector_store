@@ -32,7 +32,7 @@ env/
 .venv/
 ENV/
 pythonenv*/
-
+.DS_Store
 # Jupyter Notebook #
 ###################
 .ipynb_checkpoints
