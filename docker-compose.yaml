@@ -6,28 +6,28 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./chroma_data:/chroma
+      - /Users/uditkhandelwal/Documents/app_generator/chroma:/chroma
     env_file:
       - .env
-    depends_on:
-      - redis
+    # depends_on:
+    #   - redis
     networks:
-      - vector-store-network
+      - htmlwebappgenerator_webnet
     restart: unless-stopped
 
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - vector-store-network
-    restart: unless-stopped
+  # redis:
+  #   image: redis:latest
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - vector-store-network
+  #   restart: unless-stopped
 
 networks:
-  vector-store-network:
-    driver: bridge
+  htmlwebappgenerator_webnet:
+    external: true
 
-volumes:
-  redis_data:
+# volumes:
+#   redis_data:
