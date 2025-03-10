@@ -9,6 +9,8 @@ services:
       - /Users/uditkhandelwal/Documents/app_generator/chroma:/chroma
     env_file:
       - .env
+    ports:
+      - "8000:8000"  # Expose port 8000 to the host
     # depends_on:
     #   - redis
     networks:
