@@ -1,79 +1,69 @@
-import pytest
-
-@pytest.fixture()
-def test_fixture():
-    # existing code
-    pass
-
+import sys
 import os
-import time
-import subprocess
-import signal
-import socket
-import redis
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from dotenv import load_dotenv
+load_dotenv()
+os.environ["CHROMA_DB_STORE"] = "/Users/uditkhandelwal/Documents/app_generator/chroma"
+os.environ["REDIS_HOST"] = "localhost"
+os.environ["REDIS_PORT"] = "6379"
+from app.queue_manager import QueueManager
+from app.config import Config
+import uuid
 
-def is_port_in_use(port, host='localhost'):
-    """Check if a port is in use"""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex((host, port)) == 0
+queue_manager = QueueManager(send_queue_url=Config.VECTOR_STORE_QUEUE, receive_queue_url=Config.VECTOR_STORE_RESPONSE_QUEUE)
+collection_name = f"test_collection_{uuid.uuid4().hex[:8]}"
+def message_handler(message:dict):
+    print(message)
+    action = message["action"]
+    if action == "search":
+        test_delete_collection(collection_name=collection_name)
 
-def wait_for_redis(host='localhost', port=6379, timeout=30):
-    """Wait for Redis to be available"""
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        try:
-            client = redis.Redis(host=host, port=port)
-            client.ping()
-            return True
-        except redis.exceptions.ConnectionError:
-            time.sleep(1)
-    return False
+queue_manager.start_background_processing(message_handler=message_handler)
 
-@pytest.fixture(scope="session", autouse=True)
-def ensure_redis_running():
-    """Ensure Redis is running for tests"""
-    redis_host = os.environ.get("REDIS_HOST", "localhost")
-    redis_port = int(os.environ.get("REDIS_PORT", 6379))
+def test_create_collection(collection_name):
+    """Test creating a collection"""
 
-    # Check if Redis is already running
-    redis_running = wait_for_redis(host=redis_host, port=redis_port, timeout=5)
+    # Send create collection message
+    request_id = queue_manager.send_message({
+        "action": "create_collection",
+        "collection_name": collection_name
+    })
+    print(request_id)
 
-    if not redis_running:
-        # Start Redis in a container for testing
-        print("Starting Redis container for testing...")
-        redis_process = subprocess.Popen(
-            ["docker", "run", "--rm", "-p", f"{redis_port}:6379", "redis:latest"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            start_new_session=True
-        )
+def test_delete_collection(collection_name):
+    """Test creating a collection"""
 
-        # Wait for Redis to start
-        if not wait_for_redis(host=redis_host, port=redis_port, timeout=30):
-            os.killpg(os.getpgid(redis_process.pid), signal.SIGTERM)
-            raise Exception("Failed to start Redis container")
+    # Send create collection message
+    request_id = queue_manager.send_message({
+        "action": "delete_collection",
+        "collection_name": collection_name
+    })
+    print(request_id)
 
-        yield
+def test_add_document_to_collection(collection_name, data):
+        # Send create collection message
+    request_id = queue_manager.send_message({
+        "action": "add_data",
+        "collection_name": collection_name,
+        "data": data
+    })
+    print(request_id)
 
-        # Stop Redis container
-        print("Stopping Redis container...")
-        os.killpg(os.getpgid(redis_process.pid), signal.SIGTERM)
-    else:
-        yield
+def test_search_in_collection(collection_name, query):
+    request_id = queue_manager.send_message({
+        "action": "search",
+        "collection_name": collection_name,
+        "query": query
+    })
+    print(request_id)
 
-@pytest.fixture(scope="session", autouse=True)
-def start_vector_store_service():
-    """Start the vector store service for testing"""
-    # Import here to avoid circular imports
-    from app.startup import start_service
-    import threading
-
-    # Start the service in a separate thread
-    service_thread = threading.Thread(target=start_service)
-    service_thread.daemon = True
-    service_thread.start()
-
-    # Give the service time to start
-    time.sleep(2)
-
-    yield
+if __name__ == "__main__":
+    test_delete_collection("test_collection_6346e99f")
+    test_delete_collection("test_collection_e3fa0076")
+    
+    test_create_collection(collection_name)
+    test_add_document_to_collection(collection_name=collection_name, data= {
+        "testfile1": "This is storing just the temp data",
+        "test_file2": "This is storing another temp data"
+    })
+    test_search_in_collection(collection_name=collection_name, query="I need temp")

@@ -1,15 +1,11 @@
 import os
 import time
-from app.chroma_vector_store import chroma_vector_store
+from app.vector_store.chroma_vector_store import chroma_vector_store
 from app.queue_manager import QueueManager
 from app.logging.logging_config import get_logger
 import json
-
+from app.config import Config
 logger = get_logger()
-
-class Config:
-    VECTOR_STORE_QUEUE = os.getenv("VECTOR_STORE_QUEUE", "vector_store_queue")
-    VECTOR_STORE_RESPONSE_QUEUE = os.getenv("VECTOR_STORE_RESPONSE_QUEUE", "vector_store_response_queue")
 
 def message_handler(message):
     """
@@ -45,7 +41,15 @@ def message_handler(message):
                 chroma_vector_store.create_collection(collection_name)
                 response["status"] = "success"
                 response["message"] = f"Collection {collection_name} created"
-
+        elif action == "delete_collection":
+            collection_name = message.get('collection_name')
+            if not collection_name:
+                response["status"] = "error"
+                response["error"] = "Missing collection_name"
+            else:
+                chroma_vector_store.delete_collection(collection_name=collection_name)
+                response["status"] = "success"
+                response["message"] = f"Collection {collection_name} deleted"
         elif action == "add_data":
             collection_name = message.get('collection_name')
             data = message.get('data')
@@ -73,6 +77,7 @@ def message_handler(message):
             response["status"] = "error"
             response["error"] = f"Unknown action: {action}"
 
+        response["action"] = action
         # Send response if response queue is configured
         if Config.VECTOR_STORE_RESPONSE_QUEUE:
             queue_manager = QueueManager(send_queue_url=Config.VECTOR_STORE_RESPONSE_QUEUE)
