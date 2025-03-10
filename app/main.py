@@ -3,8 +3,9 @@ from typing import List, Dict, Any, Optional
 from app.chroma_vector_store import chroma_vector_store
 from app.startup import start_service
 from pydantic import BaseModel
-from app.logging import logger
+from app.logging.logging_config import get_logger
 import uvicorn
+logger = get_logger()
 
 app = FastAPI(title="Vector Store API", description="API for interacting with ChromaDB vector store")
 
@@ -73,6 +74,7 @@ def start_api_service():
     """
     Start the FastAPI service for the vector store
     """
+    logger.info("Starting the application on port 8000")
     uvicorn.run(app, host="0.0.0.0", port=8000)
     
 if __name__ == "__main__":

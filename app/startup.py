@@ -119,10 +119,3 @@ def start_service():
     queue_manager.start_background_processing(message_handler)
 
     logger.info("Vector Store service started successfully")
-
-    # Keep the service running
-    try:
-        while True:
-            time.sleep(60)
-    except KeyboardInterrupt:
-        logger.info("Shutting down Vector Store service...")
