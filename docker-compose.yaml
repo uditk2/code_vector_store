@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - /Users/uditkhandelwal/Documents/app_generator/chroma:/chroma
+      - .:/app
     env_file:
       - .env
     ports:
