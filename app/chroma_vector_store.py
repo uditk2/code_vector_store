@@ -162,13 +162,24 @@ class ChromaVectorStore:
         return self.search(query=query, n_results=n_results,collection_name=collection_name)
 
     def list_collections(self) -> List[str]:
-        """
-        List all collection names stored in this vector store.
+        """List all collection names stored in this vector store.
 
         Returns:
             List of collection names
         """
-        return list(self.collections.keys())
+        try:
+            # Get all collections from the ChromaDB client
+            all_collections = self.client.list_collections()
+            # Update our local cache with any collections we didn't know about
+            for collection in all_collections:
+                collection_name = collection.name
+                if collection_name not in self.collections:
+                    self.collections[collection_name] = collection
+            return [collection.name for collection in all_collections]
+        except Exception as e:
+            logger.error(f"Error listing collections: {str(e)}")
+            # Fallback to the cached collections if there's an error
+            return list(self.collections.keys())
 
     def delete_collection(self, collection_name: str) -> bool:
         """

@@ -4,6 +4,7 @@ import uvicorn
 from app.chroma_vector_store import chroma_vector_store
 from app.startup import start_service
 from pydantic import BaseModel
+from app.logging import logger
 
 app = FastAPI(title="Vector Store API", description="API for interacting with ChromaDB vector store")
 
@@ -54,14 +55,18 @@ async def search(request: SearchRequest):
 
 @app.get("/collections")
 async def list_collections():
-    """
+    """"
     List all collections in the vector store.
 
     Returns:
         List of collection names
     """
-    collections = chroma_vector_store.list_collections()
-    return {"collections": collections}
+    try:
+        collections = chroma_vector_store.list_collections()
+        return {"collections": collections}
+    except Exception as e:
+        logger.error(f"Error in list_collections endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to list collections: {str(e)}")
 
 def start_api():
     """Start the FastAPI server"""
