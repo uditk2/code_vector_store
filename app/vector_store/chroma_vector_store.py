@@ -24,7 +24,7 @@ class ChromaVectorStore:
             client: Optional ChromaDB client. If not provided, a new in-memory client will be created.
             embedding_function: Optional embedding function to use with ChromaDB.
         """
-        self.client = client if client else chromadb.PersistentClient(Config.CHROMA_DB_STORE)
+        self.client = client if client else chromadb.PersistentClient(path=Config.CHROMA_DB_STORE)
         if embedding_function is not None:
             self.embedding_function = embedding_function
         else:

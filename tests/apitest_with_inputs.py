@@ -23,11 +23,10 @@ def test_get_collection():
         return False
 
 
-def test_search_collection(collection_name):
+def test_search_collection(collection_name, query):
     try:
         import requests
         api = "http://localhost:8000/"
-        query = "update the redis store"
         data = {
                 "query": query,
                 "collection_name": collection_name,
@@ -51,10 +50,8 @@ def test_search_collection(collection_name):
         return False
     
 if __name__ == "__main__":
-    success = test_get_collection()
-    if not success:
-        sys.exit(1)
-    collection_name=input("Provide collection name to search in:")
-    success = test_search_collection(collection_name)
+    collection_name= input("Provide collection name:")
+    query = input("Provide search query:")
+    success = test_search_collection(collection_name, query)
     if not success:
         sys.exit(1)
