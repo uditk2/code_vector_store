@@ -44,9 +44,9 @@ async def create_collection(collection_name: str):
     """
     collection = chroma_vector_store.get_collection(collection_name=collection_name)
     if collection is not None:
-        return {"message": f"Collection {collection} already exists"}
+        return {"message": f"{collection} already exists"}
     collection = chroma_vector_store.create_collection(collection_name)
-    return {"message": f"Collection {collection} created successfully!"}
+    return {"message": f"{collection} created successfully!"}
 
 @app.get("/delete_collection/{collection_name}")
 async def delete_collection(collection_name: str):
