@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
 from typing import List, Dict, Any, Optional
-from app.chroma_vector_store import chroma_vector_store
+from app.vector_store.chroma_vector_store import chroma_vector_store
 from app.startup import start_service
 from pydantic import BaseModel
 from app.logging.logging_config import get_logger

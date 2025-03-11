@@ -30,7 +30,6 @@ class ChromaVectorStore:
         else:
             self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
                                         model_name="all-mpnet-base-v2")
-        self.collections = {}  # Dictionary to track created collections
 
     def create_collection(self, collection_name: str) -> Any:
         """
@@ -42,9 +41,10 @@ class ChromaVectorStore:
         Returns:
             The created collection object
         """
-        if collection_name in self.collections:
-            logger.info(f"Collection '{collection_name}' already exists. Returning existing collection.")
-            return self.collections[collection_name]
+        collection = self.get_collection(collection_name=collection_name)
+        if collection is not None:
+            logger.warning(f"Collection '{collection_name}' already exists. Returning existing collection.")
+            return collection
 
         collection = self.client.create_collection(
             name=collection_name,
@@ -52,7 +52,6 @@ class ChromaVectorStore:
             metadata={"hnsw:space": "cosine"}
         )
 
-        self.collections[collection_name] = collection
         return collection
 
     def get_collection(self, collection_name: str) -> Any:
@@ -65,19 +64,12 @@ class ChromaVectorStore:
         Returns:
             The collection object if it exists, None otherwise
         """
-        if collection_name in self.collections:
-            return self.collections[collection_name]
-
-        try:
-            collection = self.client.get_collection(
-                name=collection_name,
-                embedding_function=self.embedding_function
-            )
-            self.collections[collection_name] = collection
-            return collection
-        except:
-            print(f"Collection '{collection_name}' does not exist.")
-            return None
+        if collection_name in self.client.list_collections():
+            return self.client.get_collection(name=collection_name)
+        logger.warning(f"Collection '{collection_name}' does not exist.")
+        return None
+            
+            
 
     def add_dictionary(self, collection_name: str, dictionary: Dict[str, str]) -> None:
         """
@@ -123,17 +115,18 @@ class ChromaVectorStore:
         Returns:
             Dictionary with collection names as keys and search results as values
         """
-        if not self.collections:
-            print("No collections available to search.")
+        if  len(self.list_collections()) == 0:
+            logger.warning("No collections available to search.")
             return {}
-        if collection_name is None:
-            raise ValueError("Please provide a collection name to search in.")
-        collection = self.collections[collection_name]
+        if collection_name is None or self.get_collection(collection_name=collection_name) is None:
+            raise ValueError("Please provide a valid collection to search in.")
+        collection = self.get_collection(collection_name=collection_name)
+
         query_results = collection.query(
                 query_texts=[query],
                 n_results=n_results
             )
-
+        logger.info(f"Results {query_results}")
         # Format results for easier consumption
         formatted_results = []
         for i in range(len(query_results['ids'][0])):
@@ -168,7 +161,10 @@ class ChromaVectorStore:
         Returns:
             List of collection names
         """
-        return list(self.collections.keys())
+        collections = self.client.list_collections()
+        if collections is None or len(collections)== 0:
+            return []
+        return collections
 
     def delete_collection(self, collection_name: str) -> bool:
         """
@@ -180,11 +176,13 @@ class ChromaVectorStore:
         Returns:
             True if deleted successfully, False otherwise
         """
-        if collection_name in self.collections:
-            self.client.delete_collection(collection_name)
-            del self.collections[collection_name]
-            return True
-        return False
+        collection = self.get_collection(collection_name=collection_name)
+        if collection is None:
+            logger.warning(f"Collection with {collection_name} does not exist")
+            return False
+        self.client.delete_collection(name=collection_name)
+        logger.info("Collection deleted successfully")
+        return True
 
     def get_collection_name(self, user_id, project_base_path):
         sanitized_project_base_path = project_base_path.replace(os.sep, "_")

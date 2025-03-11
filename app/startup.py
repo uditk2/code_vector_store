@@ -5,6 +5,7 @@ from app.queue_manager import QueueManager
 from app.logging.logging_config import get_logger
 import json
 from app.config import Config
+import traceback
 logger = get_logger()
 
 def message_handler(message):
@@ -84,7 +85,7 @@ def message_handler(message):
             queue_manager.send_message(response)
 
     except Exception as e:
-        logger.error(f"Error processing message: {str(e)}", exc_info=True)
+        logger.error(f"Error processing message: {traceback.format_exc()}")
 
         # Try to send error response
         if Config.VECTOR_STORE_RESPONSE_QUEUE:
