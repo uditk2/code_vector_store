@@ -32,7 +32,7 @@ async def is_collection_exists(collection_name: str):
     return {"exists": collection is not None}
 
 @app.get("/create_collection/{collection_name}")
-async def is_collection_exists(collection_name: str):
+async def create_collection(collection_name: str):
     """
     Check if a collection exists in the vector store.
 
@@ -47,6 +47,23 @@ async def is_collection_exists(collection_name: str):
         return {"message": f"Collection {collection} already exists"}
     collection = chroma_vector_store.create_collection(collection_name)
     return {"message": f"Collection {collection} created successfully!"}
+
+@app.get("/delete_collection/{collection_name}")
+async def delete_collection(collection_name: str):
+    """
+    Check if a collection exists in the vector store.
+
+    Args:
+        collection_name: Name of the collection to check
+
+    Returns:
+        JSON response indicating if the collection exists
+    """
+    collection = chroma_vector_store.get_collection(collection_name=collection_name)
+    if collection is None:
+        return {"message": f"Collection {collection} does not exist"}
+    collection = chroma_vector_store.delete_collection(collection_name)
+    return {"message": f"Collection {collection} deleted successfully!"}
 
 @app.post("/search", response_model=SearchResponse)
 async def search(request: SearchRequest):
