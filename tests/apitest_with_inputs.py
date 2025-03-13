@@ -37,6 +37,12 @@ def test_search_collection(collection_name, query):
         print(f"Response content: {response.json()}")
         assert response.status_code == 200
         print("Test passed!")
+
+        results = response.json()["results"]
+        final_results={}
+        for result in results:
+            final_results[result["metadata"]["source"]] = result["document"]
+        print(final_results)
         return True
     except requests.exceptions.ConnectionError as e:
         print(f"Connection error: {e}")
