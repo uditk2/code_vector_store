@@ -1,7 +1,7 @@
 import chromadb
 from typing import Dict, List, Any, Optional, Union
 import uuid
-from sentence_transformers import SentenceTransformer
+from chromadb.utils import embedding_functions
 import os
 from app.logging.logging_config import get_logger
 
@@ -28,7 +28,8 @@ class ChromaVectorStore:
         if embedding_function is not None:
             self.embedding_function = embedding_function
         else:
-            self.embedding_function = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+            self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
+                                        model_name="/app/models/all-mpnet-base-v2")
 
     def create_collection(self, collection_name: str) -> Any:
         """
