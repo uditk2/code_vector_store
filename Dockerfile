@@ -34,8 +34,6 @@ ENV REDIS_PORT=6379
 ENV VECTOR_STORE_QUEUE=vector_store_queue
 ENV VECTOR_STORE_RESPONSE_QUEUE=vector_store_response_queue
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f https://huggingface.co || exit 1
 # Expose the API port
 EXPOSE 8000
 
