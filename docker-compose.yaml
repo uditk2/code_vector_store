@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   vector-store:
     build:
@@ -12,25 +10,4 @@ services:
       - .env
     ports:
       - "8000:8000"  # Expose port 8000 to the host
-    # depends_on:
-    #   - redis
-    networks:
-      - htmlwebappgenerator_webnet
     restart: unless-stopped
-
-  # redis:
-  #   image: redis:latest
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - redis_data:/data
-  #   networks:
-  #     - vector-store-network
-  #   restart: unless-stopped
-
-networks:
-  htmlwebappgenerator_webnet:
-    external: true
-
-# volumes:
-#   redis_data:
